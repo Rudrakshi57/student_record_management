@@ -68,3 +68,27 @@ def delete_student(id : int):
 
     write_data(new_student)
     return {"message": "student deleted successfully"}
+
+
+@app.put("/student/{id}")
+def updated_student(id: int, updated_data: dict):
+    students = read_data()
+    found = False
+
+    for student in students:
+        if student["id"] == id:
+            student.update(updated_data)
+            found = True
+            break
+
+    if not found:
+        return {"error": "student not found"}
+
+    write_data(students)
+    return {"message": "student updated successfully"}
+
+@app.get("/student-count")
+def count_student():
+    students = read_data()
+    return {"total_student": len(students)}
+

@@ -57,4 +57,14 @@ def delete_student(id : int):
     new_student=[]
     found = False
 
-    if 
+    for student in students:
+        if student["id"] == id:
+            found = True
+        else:
+            new_student.append(student)
+
+    if not found:
+        return {"error": "student not found"}
+
+    write_data(new_student)
+    return {"message": "student deleted successfully"}

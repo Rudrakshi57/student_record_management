@@ -1,0 +1,104 @@
+from fastapi import FastAPI
+import json
+import os
+from datetime import datetime
+
+app = FastAPI()
+
+FILE_NAME = "books.json"
+
+# 🔹 Check if file exists
+if not os.path.exists(FILE_NAME):
+    with open(FILE_NAME, "w") as file:
+        json.dump([], file)
+
+# 🔹 Read books
+def read_books():
+    with open(FILE_NAME, "r") as file:
+        return json.load(file)
+
+# 🔹 Write books
+def write_books(data):
+    with open(FILE_NAME, "w") as file:
+        json.dump(data, file, indent=4)
+
+# 🔹 Home Route
+@app.get("/")
+def home():
+    return {"message": "Welcome to Book Store API"}
+
+# 🔹 Get All Books
+@app.get("/books")
+def get_books():
+    return read_books()
+
+# 🔹 Add Book (with date-time)
+@app.post("/books")
+def add_book(book: dict):
+    books = read_books()
+
+    for b in books:
+        if b["id"] == book["id"]:
+            return {"error": "Book with this ID already exists"}
+
+    book["added_on"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    books.append(book)
+    write_books(books)
+
+    return {"message": "Book added successfully", "book": book}
+
+# 🔹 Get Book by ID
+@app.get("/books/{id}")
+def get_book(id: int):
+    books = read_books()
+
+    for book in books:
+        if book["id"] == id:
+            return book
+
+    return {"error": "Book not found"}
+
+# 🔹 Delete Book
+@app.delete("/books/{id}")
+def delete_book(id: int):
+    books = read_books()
+
+    new_books = []
+    found = False
+
+    for book in books:
+        if book["id"] == id:
+            found = True
+        else:
+            new_books.append(book)
+
+    if not found:
+        return {"error": "Book not found"}
+
+    write_books(new_books)
+    return {"message": "Book deleted successfully"}
+
+# 🔹 Update Book (Bonus)
+@app.put("/books/{id}")
+def update_book(id: int, updated_data: dict):
+    books = read_books()
+    found = False
+
+    for book in books:
+        if book["id"] == id:
+            book.update(updated_data)
+            found = True
+            break
+
+    if not found:
+        return {"error": "Book not found"}
+
+    write_books(books)
+    return {"message": "Book updated successfully"}
+
+# 🔹 Count Books (Additional Feature)
+@app.get("/books-count")
+def count_books():
+    books = read_books()
+    return {"total_books": len(books)}
